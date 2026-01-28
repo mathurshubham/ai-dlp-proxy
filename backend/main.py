@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 import os
@@ -11,6 +12,15 @@ from sqlmodel import Session
 from pii_service import pii_service
 
 app = FastAPI(title="Sentinel AI Privacy Proxy")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def on_startup():
@@ -126,3 +136,33 @@ async def chat_completions(request: ChatCompletionRequest, req: Request):
             )
         ]
     )
+
+# --- Analytics Endpoints ---
+
+@app.get("/api/v1/stats/overview")
+async def get_stats_overview():
+    """Returns aggregate metrics for the dashboard."""
+    with Session(engine) as session:
+        from sqlmodel import func, select
+        
+        total_requests = session.exec(select(func.count(AuditEvent.id))).one()
+        avg_latency = session.exec(select(func.avg(AuditEvent.latency_ms))).one() or 0
+        
+        # Count total PII entities redacted (sum of list lengths - approximate)
+        audits = session.exec(select(AuditEvent)).all()
+        pii_count = sum(len(a.entity_types) for a in audits)
+        
+        return {
+            "total_requests": total_requests,
+            "avg_latency_ms": round(float(avg_latency), 2),
+            "pii_redacted_count": pii_count,
+            "risk_score": round(min(1.0, (pii_count * 0.05)), 2)
+        }
+
+@app.get("/api/v1/stats/recent")
+async def get_recent_stats():
+    """Returns recent audit logs for the traffic inspector."""
+    with Session(engine) as session:
+        from sqlmodel import select, desc
+        audits = session.exec(select(AuditEvent).order_by(desc(AuditEvent.timestamp)).limit(20)).all()
+        return audits
