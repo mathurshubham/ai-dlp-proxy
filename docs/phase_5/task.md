@@ -19,10 +19,11 @@
     - [x] Configure PostgreSQL in backend (SQLModel) <!-- id: 16 -->
     - [x] Implement `redaction_logs` and `audit_events` tables <!-- id: 17 -->
     - [x] Wire up Proxy service to use DB for Token Mapping <!-- id: 18 -->
-- [/] **Day 5: Dashboard Frontend** <!-- id: 19 -->
-    - [/] Implement Analytics API endpoints in backend <!-- id: 20 -->
-    - [ ] Build "Threat Monitor" view (stats) <!-- id: 21 -->
-    - [ ] Build "Live Traffic Inspector" view <!-- id: 22 -->
+- [x] **Day 5: Dashboard Frontend** <!-- id: 19 -->
+    - [x] Implement Analytics API endpoints in backend <!-- id: 20 -->
+    - [x] Build "Threat Monitor" view (stats) <!-- id: 21 -->
+    - [x] Build "Live Traffic Inspector" view <!-- id: 22 -->
+    - [x] Verify UI and capture screenshots <!-- id: 27 -->
 - [ ] **Day 6: Documentation & Polish** <!-- id: 23 -->
     - [ ] Write `README.md` with usage instructions <!-- id: 24 -->
     - [ ] Write `AGENTS.md` <!-- id: 25 -->
