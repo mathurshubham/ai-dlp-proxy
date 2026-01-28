@@ -110,24 +110,36 @@ async def chat_completions(request: ChatCompletionRequest, req: Request):
         provider = "google"
         import google.generativeai as genai
         genai.configure(api_key=api_key_google)
-        model_name = request.model
-        if not model_name.startswith("models/"):
-            # Ensure we use valid model names
-            if "gemini-1.5-flash" in model_name:
-                model_name = "gemini-1.5-flash"
-            elif "gemini-2.0-flash" in model_name:
-                model_name = "gemini-2.0-flash"
+        model_name = request.model.lower()
+        # Robust model name mapping using verified identifiers
+        actual_model = "models/gemini-2.5-flash" # Safe default for this key
         
-        model = genai.GenerativeModel(model_name)
+        if "3" in model_name:
+            actual_model = "models/gemini-3-pro-preview" if "pro" in model_name else "models/gemini-3-flash-preview"
+        elif "2.5" in model_name:
+            actual_model = "models/gemini-2.5-pro" if "pro" in model_name else "models/gemini-2.5-flash"
+        elif "2.0" in model_name:
+            actual_model = "models/gemini-2.0-flash"
+        elif "pro" in model_name:
+            actual_model = "models/gemini-2.5-pro"
+        elif "flash" in model_name:
+            actual_model = "models/gemini-2.5-flash"
         
         # Convert ChatMessage to Gemini format
         contents = []
         for msg in redacted_messages:
             role = "user" if msg.role == "user" else "model"
             contents.append({"role": role, "parts": [msg.content]})
-        
-        gemini_response = model.generate_content(contents)
-        llm_response_content = gemini_response.text
+
+        try:
+            model = genai.GenerativeModel(actual_model)
+            gemini_response = model.generate_content(contents)
+            llm_response_content = gemini_response.text
+        except Exception as e:
+            print(f"Gemini call failed for {actual_model}, falling back to 2.5-flash: {e}")
+            model = genai.GenerativeModel("models/gemini-2.5-flash")
+            gemini_response = model.generate_content(contents)
+            llm_response_content = gemini_response.text
     elif not is_gemini and api_key_openai:
         provider = "openai"
         # Placeholder for real OpenAI call
