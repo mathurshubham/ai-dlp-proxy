@@ -15,10 +15,10 @@
     - [x] Implement "Redaction" logic (detect -> unique token -> store map) <!-- id: 12 -->
     - [x] Implement "Re-hydration" logic (response -> lookup -> replace) <!-- id: 13 -->
     - [x] Create `/v1/chat/completions` endpoint mirroring OpenAI API <!-- id: 14 -->
-- [/] **Day 4: Database Integration** <!-- id: 15 -->
-    - [/] Configure PostgreSQL in backend (SQLModel) <!-- id: 16 -->
-    - [ ] Implement `redaction_logs` and `audit_events` tables <!-- id: 17 -->
-    - [ ] Wire up Proxy service to use DB for Token Mapping <!-- id: 18 -->
+- [x] **Day 4: Database Integration** <!-- id: 15 -->
+    - [x] Configure PostgreSQL in backend (SQLModel) <!-- id: 16 -->
+    - [x] Implement `redaction_logs` and `audit_events` tables <!-- id: 17 -->
+    - [x] Wire up Proxy service to use DB for Token Mapping <!-- id: 18 -->
 - [ ] **Day 5: Dashboard Frontend** <!-- id: 19 -->
     - [ ] Implement Analytics API endpoints in backend <!-- id: 20 -->
     - [ ] Build "Threat Monitor" view (stats) <!-- id: 21 -->
