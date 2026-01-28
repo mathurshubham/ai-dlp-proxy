@@ -1,26 +1,33 @@
-# Implementation Plan - Day 6: Documentation & Polish
+# Implementation Plan - UI Overhaul & Bug Fixes
 
 ## Goal Description
-Finalize the Sentinel AI Privacy Proxy by creating comprehensive documentation for human users and AI agents. This includes a setup guide, architectural overview, and usage instructions.
+Polish the Sentinel AI Privacy Proxy frontend for a more "premium" feel using Shadcn/ui. Resolve technical issues including hydration mismatches and fetching errors.
 
 ## Proposed Changes
 
-### Root Directory
-#### [NEW] [README.md](file:///home/shubham/Documents/projects/ai-dev-tools-zoomcamp/ai-privacy-proxy/README.md)
-- Project overview and value proposition.
-- Quick start guide (Docker).
-- Examples of PII redaction and rehydration.
-- Visuals (Screenshots of the dashboard).
+### Frontend (`/frontend`)
 
-#### [NEW] [AGENTS.md](file:///home/shubham/Documents/projects/ai-dev-tools-zoomcamp/ai-privacy-proxy/AGENTS.md)
-- Context for other AI entities to understand how to interact with this proxy.
-- API specifications for the proxy and analytics endpoints.
+#### [MODIFY] [layout.tsx](file:///home/shubham/Documents/projects/ai-dev-tools-zoomcamp/ai-privacy-proxy/frontend/src/app/layout.tsx)
+- Add `suppressHydrationWarning` to `<html>` to fix extension-related hydration errors.
+- Update metadata title/description.
 
-### Documentation Polish
-#### [NEW] [docs/phase_6/](file:///home/shubham/Documents/projects/ai-dev-tools-zoomcamp/ai-privacy-proxy/docs/phase_6/)
-- Copy final task list and walkthrough to the phase-specific folder.
+#### [MODIFY] [globals.css](file:///home/shubham/Documents/projects/ai-dev-tools-zoomcamp/ai-privacy-proxy/frontend/src/app/globals.css)
+- Configure Tailwind 4 theme for Shadcn/ui compatibility.
+- Define necessary CSS variables for the "premium" dark/light mode.
+
+#### [NEW] Shadcn Components
+- Install and initialize `shadcn-ui`.
+- Add `Card`, `Table`, `Badge`, `Skeleton`, and `Button` components.
+
+#### [MODIFY] [page.tsx](file:///home/shubham/Documents/projects/ai-dev-tools-zoomcamp/ai-privacy-proxy/frontend/src/app/page.tsx)
+- Rewrite the dashboard using Shadcn components.
+- Improve error handling for the `fetch` calls.
+- Add "Empty State" and "Loading State" (Skeletons).
 
 ## Verification Plan
+### Automated Tests
+- Build and run the docker environment.
+- Use `browser_subagent` to verify the new UI and ensure the console is clear of fetch/hydration errors.
+
 ### Manual Verification
-- Read through the README to ensure all links and commands are correct.
-- Verify that the `AGENTS.md` provides clear instructions for programmatic usage.
+- Visual inspection of the dashboard for "appeal" and "functional excellence".
