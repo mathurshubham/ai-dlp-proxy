@@ -4,6 +4,8 @@
 
 Sentinel AI Privacy Proxy is a high-performance "Man-in-the-Middle" security layer designed to intercept, redact, and rehydrate PII (Sensitive Personal Information) in LLM conversations. It ensures that sensitive data like names, emails, and phone numbers never reach your AI provider while remaining invisible to the end-user.
 
+![Dashboard Overview](docs/qa/dashboard_v2.png)
+
 ## ✨ Key Features
 
 - **Precision Redacted Multi-Model Support**: Support for OpenAI and Google Gemini (Gemini 2.5 Pro/Flash, Gemini 3 Pro/Flash).
@@ -25,16 +27,27 @@ Sentinel AI Privacy Proxy is a high-performance "Man-in-the-Middle" security lay
 git clone <repo-url>
 cd ai-privacy-proxy
 
-# Start the stack (provide keys in .env or pass them)
-export OPENAI_API_KEY=sk-...
-export GOOGLE_API_KEY=AIza...
+# 1. Configure Environment
+cp .env.example .env
+# Edit .env with your keys (OpenAI, Google Gemini)
+
+# 2. Start the stack
 docker compose up -d --build
+
+# 3. Verify Health
+curl http://localhost:8000/health
 ```
 
 The services will be available at:
 - **Dashboard**: [http://localhost:3000](http://localhost:3000)
 - **Proxy API**: [http://localhost:8000](http://localhost:8000)
 - **API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### ✨ Dashboard v2 Views
+
+| **Main Analytics** | **Deep Inspection (Reveal)** |
+|:---:|:---:|
+| ![Dashboard v2](docs/qa/full_dashboard_clean.png) | ![Reveal PII](docs/qa/reveal_action.png) |
 
 ## 🛠️ Usage Example
 
