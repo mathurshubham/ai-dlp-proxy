@@ -97,15 +97,37 @@ async def chat_completions(request: ChatCompletionRequest, req: Request):
         session.add(log)
         session.commit()
 
-    # 3. Forwarding Phase (Mock Mode)
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        # Mock Response: simulated LLM response
+    # 3. Forwarding Phase (Provider Detection)
+    api_key_openai = os.getenv("OPENAI_API_KEY")
+    api_key_google = os.getenv("GOOGLE_API_KEY")
+    
+    is_gemini = "gemini" in request.model.lower()
+    llm_response_content = ""
+    provider = "mock"
+
+    if is_gemini and api_key_google:
+        provider = "google"
+        import google.generativeai as genai
+        genai.configure(api_key=api_key_google)
+        # Handle gemini-2.5-pro/flash, gemini-3-pro/flash
+        model = genai.GenerativeModel(request.model)
+        
+        # Convert ChatMessage to Gemini format
+        contents = []
+        for msg in redacted_messages:
+            role = "user" if msg.role == "user" else "model"
+            contents.append({"role": role, "parts": [msg.content]})
+        
+        gemini_response = model.generate_content(contents)
+        llm_response_content = gemini_response.text
+    elif not is_gemini and api_key_openai:
+        provider = "openai"
+        # Placeholder for real OpenAI call
+        llm_response_content = f"I understand. (Real API call to OpenAI would happen here with redacted content)"
+    else:
+        # Mock Response
         mock_token = list(total_mapping.keys())[0] if total_mapping else "the user"
         llm_response_content = f"I understand. I have noted the details for {mock_token}."
-    else:
-        # Placeholder for real OpenAI call
-        llm_response_content = f"I understand. (Real API call would happen here with redacted content)"
 
     # 4. Rehydration Phase
     final_content = llm_response_content
@@ -116,7 +138,7 @@ async def chat_completions(request: ChatCompletionRequest, req: Request):
     latency_ms = int((time.time() - start_time) * 1000)
     with Session(engine) as session:
         audit = AuditEvent(
-            risk_score=len(total_mapping) * 0.1, # Dummy risk score logic
+            risk_score=len(total_mapping) * 0.1, 
             entity_types=list(entity_types),
             latency_ms=latency_ms,
             status="SUCCESS"

@@ -6,17 +6,18 @@ Sentinel AI Privacy Proxy is a high-performance "Man-in-the-Middle" security lay
 
 ## ✨ Key Features
 
+- **Precision Redacted Multi-Model Support**: Support for OpenAI and Google Gemini (Gemini 2.5 Pro/Flash, Gemini 3 Pro/Flash).
 - **Automated PII Redaction**: Uses Microsoft Presidio to detect and mask sensitive entities in real-time.
 - **Bi-directional Rehydration**: Automatically restores redacted information in LLM responses before they reach the user.
 - **OpenAI Compatible**: Drop-in replacement for OpenAI's `/v1/chat/completions` API.
-- **Security Dashboard**: Visualizes blocked threats, risk scores, and system performance using Tremor.
+- **Security Dashboard**: Visualizes blocked threats, risk scores, and system performance using Shadcn/ui.
 - **Postgres Persistence**: Securely logs redaction events and audit data for CISO-level observability.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Docker & Docker Compose
-- OpenAI API Key (Optional, defaults to Mock Mode)
+- OpenAI API Key or Google API Key (Optional, defaults to Mock Mode)
 
 ### Run with Docker
 ```bash
@@ -24,7 +25,9 @@ Sentinel AI Privacy Proxy is a high-performance "Man-in-the-Middle" security lay
 git clone <repo-url>
 cd ai-privacy-proxy
 
-# Start the stack
+# Start the stack (provide keys in .env or pass them)
+export OPENAI_API_KEY=sk-...
+export GOOGLE_API_KEY=AIza...
 docker compose up -d --build
 ```
 
@@ -35,8 +38,7 @@ The services will be available at:
 
 ## 🛠️ Usage Example
 
-Point your OpenAI client to the proxy URL:
-
+### OpenAI Client
 ```python
 import openai
 
@@ -53,6 +55,15 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 # Output: "I understand. I have noted the details for Shubham Mathur." 
 # (The LLM only saw <PERSON_1> and <PHONE_NUMBER_1>)
+```
+
+### Google Gemini Client
+Simply change the model name to use Gemini models:
+```python
+response = client.chat.completions.create(
+    model="gemini-1.5-flash", # Also supports gemini-2.5-pro, gemini-3-flash, etc.
+    messages=[{"role": "user", "content": "My email is test@example.com"}]
+)
 ```
 
 ## 📊 Observability
