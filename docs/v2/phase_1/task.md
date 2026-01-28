@@ -1,0 +1,22 @@
+# Task: Sentinel AI Dashboard v2 Evolution
+
+- [x] Planning & Design <!-- id: 0 -->
+    - [x] Create Implementation Plan <!-- id: 1 -->
+    - [x] Design UI layout and components <!-- id: 2 -->
+- [x] Backend Enhancements <!-- id: 3 -->
+    - [x] Add filtering and search to `GET /api/v1/stats/recent` <!-- id: 4 -->
+    - [x] Create `GET /api/v1/stats/trend` endpoint for Area Chart <!-- id: 5 -->
+    - [x] Create `GET /api/v1/stats/distribution` endpoint for Donut Chart <!-- id: 6 -->
+- [x] Frontend Implementation <!-- id: 7 -->
+    - [x] Install dependencies (`@tremor/react`, `recharts`, `@headlessui/react`) <!-- id: 8 -->
+    - [x] Implement `TrafficTrendChart` component <!-- id: 9 -->
+    - [x] Implement `PIIDistributionChart` component <!-- id: 10 -->
+    - [x] Implement `FilterToolbar` for Traffic Inspector <!-- id: 11 -->
+    - [x] Implement `LogDetailSheet` (Slide-over panel) <!-- id: 12 -->
+    - [x] Implement Policy Configuration Modal <!-- id: 13 -->
+    - [x] Update `TrafficInspector` to support row clicks and details <!-- id: 14 -->
+- [x] Verification & Testing <!-- id: 15 -->
+    - [x] Verify charts data accuracy <!-- id: 16 -->
+    - [x] Test filtering functionality <!-- id: 17 -->
+    - [x] Validate slide-over panel and reveal action <!-- id: 18 -->
+    - [x] Final UI/UX polish <!-- id: 19 -->

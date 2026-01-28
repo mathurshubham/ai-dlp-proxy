@@ -10,7 +10,7 @@ Sentinel AI Privacy Proxy is a high-performance "Man-in-the-Middle" security lay
 - **Automated PII Redaction**: Uses Microsoft Presidio to detect and mask sensitive entities in real-time.
 - **Bi-directional Rehydration**: Automatically restores redacted information in LLM responses before they reach the user.
 - **OpenAI Compatible**: Drop-in replacement for OpenAI's `/v1/chat/completions` API.
-- **Security Dashboard**: Visualizes blocked threats, risk scores, and system performance using Shadcn/ui.
+- **Active Control Center (v2)**: Advanced security dashboard with interactive drill-downs, analytics trends, and policy configuration.
 - **Postgres Persistence**: Securely logs redaction events and audit data for CISO-level observability.
 
 ## 🚀 Quick Start
@@ -66,13 +66,13 @@ response = client.chat.completions.create(
 )
 ```
 
-## 📊 Observability
+## 📊 Observability & Control (v2)
 
-The built-in dashboard provides real-time insights into your AI usage:
-- **Total Requests & PII Counts**
-- **Average Latency Overhead**
-- **DLP Risk Scoring**
-- **Live Traffic Inspector** (Sanitized view)
+The built-in dashboard provides an **Active Control Center** for privacy auditing:
+- **Security Analytics**: Traffic & Latency Trends (Area Chart) and PII Distribution (Donut Chart).
+- **Live Traffic Inspector**: Advanced filtering by User ID, Status, or Entity Type.
+- **Request Drill-Down**: Slide-over details for every request with metadata and redacted context.
+- **Policy Configuration**: Real-time management of risk thresholds and active PII detectors.
 
 ---
 Built with ❤️ for AI Security.

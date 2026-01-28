@@ -3,8 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import StatsOverview from "@/components/StatsOverview";
 import TrafficInspector from "@/components/TrafficInspector";
+import TrafficTrendChart from "@/components/TrafficTrendChart";
+import PIIDistributionChart from "@/components/PIIDistributionChart";
+import FilterToolbar from "@/components/FilterToolbar";
+import PolicySettingsModal from "@/components/PolicySettingsModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shield, Activity, RefreshCcw, AlertTriangle } from "lucide-react";
+import { Shield, Activity, RefreshCcw, AlertTriangle, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
@@ -15,9 +19,17 @@ export default function DashboardPage() {
     risk_score: 0,
   });
   const [logs, setLogs] = useState([]);
+  const [trendData, setTrendData] = useState([]);
+  const [distributionData, setDistributionData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [filters, setFilters] = useState({
+    userId: "",
+    status: "",
+    entityType: ""
+  });
+  const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
 
   const fetchData = useCallback(async (isInitial = false) => {
     if (isInitial) setLoading(true);
@@ -25,20 +37,31 @@ export default function DashboardPage() {
     setError(null);
 
     try {
-      const [statsRes, logsRes] = await Promise.all([
+      const queryParams = new URLSearchParams();
+      if (filters.userId) queryParams.append("user_id", filters.userId);
+      if (filters.status) queryParams.append("status", filters.status);
+      if (filters.entityType) queryParams.append("entity_type", filters.entityType);
+
+      const [statsRes, logsRes, trendRes, distRes] = await Promise.all([
         fetch("http://localhost:8000/api/v1/stats/overview"),
-        fetch("http://localhost:8000/api/v1/stats/recent")
+        fetch(`http://localhost:8000/api/v1/stats/recent?${queryParams.toString()}`),
+        fetch("http://localhost:8000/api/v1/stats/trend"),
+        fetch("http://localhost:8000/api/v1/stats/distribution")
       ]);
 
-      if (!statsRes.ok || !logsRes.ok) {
+      if (!statsRes.ok || !logsRes.ok || !trendRes.ok || !distRes.ok) {
         throw new Error("One or more services are unreachable.");
       }
 
       const statsData = await statsRes.json();
       const logsData = await logsRes.json();
+      const trendData = await trendRes.json();
+      const distData = await distRes.json();
 
       setStats(statsData);
       setLogs(logsData);
+      setTrendData(trendData);
+      setDistributionData(distData);
     } catch (err) {
       console.error("Dashboard Fetch Error:", err);
       setError("Unable to connect to the Security Engine. Please ensure the backend is running.");
@@ -46,7 +69,7 @@ export default function DashboardPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     fetchData(true);
@@ -110,7 +133,16 @@ export default function DashboardPage() {
           <div className="transition-all duration-700">
             <div className="mb-6 flex items-end justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">Security Command</h2>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+                  Security Command
+                  <button
+                    onClick={() => setIsPolicyModalOpen(true)}
+                    className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400"
+                    title="Configure Policy"
+                  >
+                    <Settings className="h-5 w-5" />
+                  </button>
+                </h2>
                 <p className="text-slate-500 dark:text-slate-400">Observing data flow across private LLM infrastructure.</p>
               </div>
               <div className="text-right hidden md:block">
@@ -119,9 +151,33 @@ export default function DashboardPage() {
               </div>
             </div>
             <StatsOverview stats={stats} />
-            <TrafficInspector logs={logs} />
+
+            {/* NEW: Analytics Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+              <div className="lg:col-span-2">
+                <TrafficTrendChart data={trendData} />
+              </div>
+              <div className="lg:col-span-1">
+                <PIIDistributionChart data={distributionData} />
+              </div>
+            </div>
+
+            <div className="mt-8">
+              <FilterToolbar
+                onSearch={(userId) => setFilters(prev => ({ ...prev, userId }))}
+                onStatusChange={(status) => setFilters(prev => ({ ...prev, status }))}
+                onEntityTypeChange={(entityType) => setFilters(prev => ({ ...prev, entityType }))}
+                onClear={() => setFilters({ userId: "", status: "", entityType: "" })}
+              />
+              <TrafficInspector logs={logs} />
+            </div>
           </div>
         )}
+
+        <PolicySettingsModal
+          isOpen={isPolicyModalOpen}
+          onClose={() => setIsPolicyModalOpen(false)}
+        />
       </div>
 
       <footer className="mt-20 border-t py-8 text-center text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">

@@ -36,6 +36,7 @@ class ChatCompletionRequest(BaseModel):
     messages: List[ChatMessage]
     temperature: Optional[float] = 1.0
     stream: Optional[bool] = False
+    user: Optional[str] = None
 
 class ChatCompletionResponseChoice(BaseModel):
     index: int
@@ -109,8 +110,15 @@ async def chat_completions(request: ChatCompletionRequest, req: Request):
         provider = "google"
         import google.generativeai as genai
         genai.configure(api_key=api_key_google)
-        # Handle gemini-2.5-pro/flash, gemini-3-pro/flash
-        model = genai.GenerativeModel(request.model)
+        model_name = request.model
+        if not model_name.startswith("models/"):
+            # Ensure we use valid model names
+            if "gemini-1.5-flash" in model_name:
+                model_name = "gemini-1.5-flash"
+            elif "gemini-2.0-flash" in model_name:
+                model_name = "gemini-2.0-flash"
+        
+        model = genai.GenerativeModel(model_name)
         
         # Convert ChatMessage to Gemini format
         contents = []
@@ -138,6 +146,8 @@ async def chat_completions(request: ChatCompletionRequest, req: Request):
     latency_ms = int((time.time() - start_time) * 1000)
     with Session(engine) as session:
         audit = AuditEvent(
+            request_id=request_id,
+            user_id=request.user,
             risk_score=len(total_mapping) * 0.1, 
             entity_types=list(entity_types),
             latency_ms=latency_ms,
@@ -182,9 +192,78 @@ async def get_stats_overview():
         }
 
 @app.get("/api/v1/stats/recent")
-async def get_recent_stats():
-    """Returns recent audit logs for the traffic inspector."""
+async def get_recent_stats(
+    status: Optional[str] = None,
+    user_id: Optional[str] = None,
+    entity_type: Optional[str] = None,
+    limit: int = 20
+):
+    """Returns recent audit logs with optional filtering."""
     with Session(engine) as session:
-        from sqlmodel import select, desc
-        audits = session.exec(select(AuditEvent).order_by(desc(AuditEvent.timestamp)).limit(20)).all()
+        from sqlmodel import select, desc, col
+        statement = select(AuditEvent).order_by(desc(AuditEvent.timestamp))
+        
+        if status:
+            statement = statement.where(AuditEvent.status == status)
+        if user_id:
+            statement = statement.where(AuditEvent.user_id == user_id)
+        if entity_type:
+            # Check if entity_type is in the list of entity_types
+            statement = statement.where(col(AuditEvent.entity_types).contains([entity_type]))
+            
+        audits = session.exec(statement.limit(limit)).all()
         return audits
+
+@app.get("/api/v1/stats/trend")
+async def get_stats_trend():
+    """Returns time-bucketed stats for charts."""
+    with Session(engine) as session:
+        from sqlmodel import select, func
+        # Mocking time buckets for simplicity in this version, 
+        # in a real app you'd use date_trunc or similar SQL functions
+        audits = session.exec(select(AuditEvent)).all()
+        
+        # Simple grouping by hour/minute for the demo
+        trend = []
+        buckets = {}
+        for a in audits:
+            t = a.timestamp.strftime("%H:%M")
+            if t not in buckets:
+                buckets[t] = {"time": t, "requests": 0, "latency": 0, "count": 0}
+            buckets[t]["requests"] += 1
+            buckets[t]["latency"] += a.latency_ms
+            buckets[t]["count"] += 1
+            
+        for t in sorted(buckets.keys()):
+            b = buckets[t]
+            trend.append({
+                "time": b["time"],
+                "requests": b["requests"],
+                "latency": round(b["latency"] / b["count"], 2) if b["count"] > 0 else 0
+            })
+            
+        return trend[-10:] # Return last 10 points
+
+@app.get("/api/v1/stats/distribution")
+async def get_pii_distribution():
+    """Returns distribution of redacted PII types."""
+    with Session(engine) as session:
+        from sqlmodel import select
+        audits = session.exec(select(AuditEvent)).all()
+        
+        dist = {}
+        for a in audits:
+            for etype in a.entity_types:
+                dist[etype] = dist.get(etype, 0) + 1
+                
+        return [{"name": k, "value": v} for k, v in dist.items()]
+
+@app.get("/api/v1/reveal/{request_id}")
+async def reveal_pii(request_id: str):
+    """Fetches the original PII mapping for a specific request ID."""
+    with Session(engine) as session:
+        from sqlmodel import select
+        log = session.exec(select(RedactionLog).where(RedactionLog.request_id == request_id)).first()
+        if not log:
+            raise HTTPException(status_code=404, detail="Redaction log not found")
+        return log.token_map

@@ -1,4 +1,5 @@
-from sqlmodel import SQLModel, Field, create_engine, Session, JSON, Column, ARRAY, Text
+from sqlmodel import SQLModel, Field, create_engine, Session, JSON, Column, Text
+from sqlalchemy.dialects.postgresql import ARRAY
 from typing import Optional, List, Dict
 import os
 from datetime import datetime
@@ -26,6 +27,8 @@ class AuditEvent(SQLModel, table=True):
     __tablename__ = "audit_events"
     
     id: Optional[int] = Field(default=None, primary_key=True)
+    request_id: Optional[str] = Field(default=None, index=True)
+    user_id: Optional[str] = Field(default=None, index=True)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     risk_score: float = 0.0
     
