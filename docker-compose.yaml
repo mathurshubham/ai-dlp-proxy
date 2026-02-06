@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   db:
     image: postgres:15-alpine
@@ -13,7 +15,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "3001:8000"
     environment:
       - DATABASE_URL=postgresql://sentinel:password@db/sentinel_db
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -21,20 +23,16 @@ services:
     depends_on:
       - db
     volumes:
-      - ./backend:/app
+      - ./backend:/app   # keep source mounted if you want live reload
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
-
+    
 volumes:
   postgres_data:
