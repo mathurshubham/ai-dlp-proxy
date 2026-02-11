@@ -2,17 +2,8 @@ import { Fragment, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Dialog, Transition } from "@headlessui/react";
 import { X, Shield, Clock, User, Fingerprint, Eye } from "lucide-react";
-
-interface AuditLog {
-    id: number;
-    request_id: string;
-    user_id: string;
-    timestamp: string;
-    risk_score: number;
-    entity_types: string[];
-    latency_ms: number;
-    status: string;
-}
+import { API_BASE_URL } from "@/lib/config";
+import { AuditLog } from "@/lib/types";
 
 interface LogDetailSheetProps {
     isOpen: boolean;
@@ -35,7 +26,7 @@ export default function LogDetailSheet({ isOpen, onClose, log }: LogDetailSheetP
         if (!log) return;
         setIsRevealing(true);
         try {
-            const res = await fetch(`http://localhost:8000/api/v1/reveal/${log.request_id}`);
+            const res = await fetch(`${API_BASE_URL}/api/v1/reveal/${log.request_id}`);
             if (res.ok) {
                 const data = await res.json();
                 setRevealedData(data);

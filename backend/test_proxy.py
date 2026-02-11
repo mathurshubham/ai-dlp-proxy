@@ -1,8 +1,15 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 def test_proxy_flow():
-    url = "http://localhost:8000/v1/chat/completions"
+    # Use environment variable for API URL, fallback to shubhammathur.in
+    api_base = os.getenv("NEXT_PUBLIC_API_URL", "https://api.shubhammathur.in")
+    url = f"{api_base}/v1/chat/completions"
     payload = {
         "model": "gpt-3.5-turbo",
         "messages": [

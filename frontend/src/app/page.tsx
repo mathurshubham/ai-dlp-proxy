@@ -10,17 +10,19 @@ import PolicySettingsModal from "@/components/PolicySettingsModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Shield, Activity, RefreshCcw, AlertTriangle, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { API_BASE_URL } from "@/lib/config";
+import { Stats, AuditLog, TrendData, DistributionData } from "@/lib/types";
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     total_requests: 0,
     avg_latency_ms: 0,
     pii_redacted_count: 0,
     risk_score: 0,
   });
-  const [logs, setLogs] = useState([]);
-  const [trendData, setTrendData] = useState([]);
-  const [distributionData, setDistributionData] = useState([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [trendData, setTrendData] = useState<TrendData[]>([]);
+  const [distributionData, setDistributionData] = useState<DistributionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -43,10 +45,10 @@ export default function DashboardPage() {
       if (filters.entityType) queryParams.append("entity_type", filters.entityType);
 
       const [statsRes, logsRes, trendRes, distRes] = await Promise.all([
-        fetch("http://localhost:8000/api/v1/stats/overview"),
-        fetch(`http://localhost:8000/api/v1/stats/recent?${queryParams.toString()}`),
-        fetch("http://localhost:8000/api/v1/stats/trend"),
-        fetch("http://localhost:8000/api/v1/stats/distribution")
+        fetch(`${API_BASE_URL}/api/v1/stats/overview`),
+        fetch(`${API_BASE_URL}/api/v1/stats/recent?${queryParams.toString()}`),
+        fetch(`${API_BASE_URL}/api/v1/stats/trend`),
+        fetch(`${API_BASE_URL}/api/v1/stats/distribution`)
       ]);
 
       if (!statsRes.ok || !logsRes.ok || !trendRes.ok || !distRes.ok) {
