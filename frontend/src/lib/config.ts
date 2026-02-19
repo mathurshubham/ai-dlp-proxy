@@ -1,1 +1,1 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.shubhammathur.in";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://sentinel-api.shubhammathur.in";
